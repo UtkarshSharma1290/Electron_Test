@@ -329,3 +329,9 @@ else {
      ```
 
 By following these steps, you will set up your project with the required dependencies, apply the necessary modifications to the `node-record-lpcm16` package, and run both the main project and the Electron application.
+
+
+
+
+
+//extra 
