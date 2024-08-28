@@ -1,0 +1,179 @@
+old voice-recording connecting URL:
+    -   `https://ai-interview.hestawork.com/openai/response/${args.email}/${args.session_id}/${encrypted_message}`; // staging
+
+------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------
+
+/*
+      inside the start-recording-speaker
+      if (chunk instanceof ArrayBuffer || isArrayBufferView(chunk)) {
+        let decoder = new TextDecoder("utf-8");
+        let chunkData = decoder.decode(chunk).trim();
+        chunkData = chunkData.replace(/^\s+|\s+$/g, "");
+        chunkData = chunkData.replace(/\u0000/g, "");
+        chunkData = chunkData.replace(/\n/g, " ");
+        event.reply("transcription", chunkData);
+        console.log(chunkData);
+        console.log("🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷");
+        console.log("Audio getting form the speaker: ", chunkData);
+        console.log("🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷🞷");
+      }
+*/
+
+/*
+      inside start-recording-microphone
+      if (chunk instanceof ArrayBuffer || isArrayBufferView(chunk)) {
+        let decoder = new TextDecoder("utf-8");
+        let chunkData = decoder.decode(chunk).trim();
+        chunkData = chunkData.replace(/^\s+|\s+$/g, "");
+        chunkData = chunkData.replace(/\u0000/g, "");
+        chunkData = chunkData.replace(/\n/g, " ");
+        event.reply("microphone-text", chunkData);
+        console.log(chunkData);
+        console.log(
+          "✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦"
+        );
+        console.log("Audio getting form the microphone: ", chunkData);
+        console.log(
+          "✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦"
+        );
+      }
+*/
+
+------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------
+const psListPromise = import("ps-list");
+
+function hiddenOrShowAppContent({ isHideContent }) {
+  if (isHideContent) {
+    // --> hidding the application content
+    win.webContents
+      .executeJavaScript(
+        'document.getElementById("root").classList.add("hidden")'
+      )
+      .catch((err) => {
+        console.error("Error executing JavaScript to show content:", err);
+      });
+    // --> making the background as black
+    win.webContents
+      .executeJavaScript('document.body.classList.add("black-screen")')
+      .catch((err) => {
+        console.error("Error executing JavaScript to show content:", err);
+      });
+    // --> showing the application close message
+    win.webContents
+      .executeJavaScript(
+        'document.getElementById("application-close-message").classList.remove("hidden")'
+      )
+      .catch((err) => {
+        console.error("Error executing JavaScript to show content:", err);
+      });
+    return;
+  }
+  win.webContents
+    .executeJavaScript(
+      'document.getElementById("root").classList.remove("hidden")'
+    )
+    .catch((err) => {
+      console.error("Error executing JavaScript to show content:", err);
+    });
+
+  win.webContents.executeJavaScript(
+    'document.body.classList.remove("black-screen")'
+  );
+
+  win.webContents
+    .executeJavaScript(
+      'document.getElementById("application-close-message").classList.add("hidden")'
+    )
+    .catch((err) => {
+      console.error("Error executing JavaScript to show content:", err);
+    });
+}
+
+async function monitorForScreenRecorderBackgroundProcesses() {
+  try {
+    const psList = await psListPromise;
+    const processes = await psList.default();
+    const isRecording = processes.filter((p) =>
+      recordingProcesses.includes(p.name)
+    );
+    if (isRecording?.length) {
+      hiddenOrShowAppContent({ isHideContent: true });
+    } else {
+      hiddenOrShowAppContent({ isHideContent: false });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+app.whenReady().then(() => {
+  createWindow();
+  systemPreferences
+    .askForMediaAccess("microphone")
+    .then((granted) => {
+      if (granted) {
+        log.info("Microphone access granted");
+      } else {
+        log.info("Microphone access denied");
+      }
+    })
+    .catch((err) => {
+      console.error("Error asking for microphone permission:", err);
+    });
+
+  // isBrewInstalled();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+
+  let setIntervalIdForBackgroundProcessMonitoring;
+  win.webContents.on("did-finish-load", () => {
+    win.setContentProtection(true);
+    // below function is used to detect any background process used to capture the screen-recording
+    // if (!setIntervalIdForBackgroundProcessMonitoring) {
+    //   setIntervalIdForBackgroundProcessMonitoring = setInterval(() => {
+    //     monitorForScreenRecorderBackgroundProcesses();
+    //   }, 3000);
+    // }
+  });
+});
+
+------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------
+
+// for sending the data to assembly ai backend using web-socket
+// async function startRecordingForSpeaker(ws) {
+//   const MONO = 1;
+//   const deviceId = "Blackhole 2ch";
+
+//   recording = recorder.record({
+//     sampleRate: 16000,
+//     channels: MONO,
+//     device: deviceId,
+//   });
+//   recording.start();
+
+//   // recordingNew.stream().pipe(outputStream); //for writing the output to the input text
+
+//   console.log("Recording...");
+//   // sending the data to the python backend
+//   recording.stream().on("data", (chunk) => {
+//     console.log("Chunk of the web-socket speaker: ", { chunk });
+//     const base64AudioData = chunk.toString("base64");
+//     ws.send(base64AudioData);
+//   });
+// }
+
+------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------
+
+    //Older way of taking audio input from "External microphone"
+    // recordingNew = parRecorder.record({
+    //   sampleRate: 16000,
+    //   channels: MONO,
+    //   device: deviceId,
+    // });
+    // recordingNew.start();
+
+
+------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------ ------ X ------

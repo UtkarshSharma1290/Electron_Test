@@ -1,0 +1,151 @@
+  useEffect(() => {
+    const onMouseClickAndMoveHandler = () => {
+      if (isApiResponseLoadingRef.current.isApiResponseLoading) {
+        setIsScrollToBottom(false);
+      }
+    };
+    document.addEventListener("mousemove", onMouseClickAndMoveHandler);
+    document.addEventListener("click", onMouseClickAndMoveHandler);
+    return () => {
+      document.removeEventListener("mousemove", onMouseClickAndMoveHandler);
+      document.removeEventListener("click", onMouseClickAndMoveHandler);
+    };
+  }, []);
+
+    useEffect(() => {
+    isApiResponseLoadingRef.current.isApiResponseLoading = isApiResponseLoading;
+  }, [isApiResponseLoading]);
+
+    const isApiResponseLoadingRef = useRef({ isApiResponseLoading });
+
+----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- 
+
+  const prevScrollYRef = useRef({ value: 0 });
+  const currentScrollYRef = useRef({ value: 0 });
+    scroll-up event:
+    // const handleScroll = () => {
+    //   if (!scrollContainer) return;
+
+    //   prevScrollYRef.current.value = currentScrollYRef.current.value;
+    //   currentScrollYRef.current.value = scrollContainer.scrollTop;
+
+    //   if (scrollContainer.scrollTop > prevScrollYRef.current.value) {
+    //     if (isScrolledToBottom(bottomRef)) {
+    //       console.log("down....");
+    //       isScrollToBottomRef.current.value = true;
+    //     }
+    //   } else if (scrollContainer.scrollTop < prevScrollYRef.current.value) {
+    //     console.log("up....");
+    //     isScrollToBottomRef.current.value = false;
+    //   } else {
+    //     console.log("no where....");
+    //   }
+    // };
+
+    // const throttledScrollHandler = throttle(handleScroll);
+
+----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- 
+
+ function startSecondaryRecordingFromRenderer() {
+    //removing old listeners
+    ipcRenderer.removeAllListeners("secondaryRecording");
+    ipcRenderer.removeAllListeners("parallelRecording");
+    ipcRenderer.removeAllListeners("start-recording-microphone");
+    ipcRenderer.removeAllListeners("start-recording-speaker");
+    ipcRenderer.removeAllListeners("transcription");
+    ipcRenderer.removeAllListeners("stop-recording");
+    ipcRenderer.removeAllListeners("microphone-text");
+    /**
+     * Below option is for Wishper AI frontend audio transcription
+     */
+    // ipcRenderer.send("speaker-testing");
+
+    // ipcRenderer.send("secondaryRecording");
+    // ipcRenderer.send("parallelRecording"); // for getting the audio from microphone
+
+    //::: FOR ASSEMBLY AI
+    // ipcRenderer.send("assembly-ai-speaker");
+    // ipcRenderer.send("assembly-ai-microphone");
+    /////////////////////
+
+    ipcRenderer.send("start-recording-microphone", {
+      userId: localStorage?.getItem(USER_EMAIL),
+    });
+    ipcRenderer.send("start-recording-speaker", {
+      userId: localStorage?.getItem(USER_EMAIL),
+    });
+
+    console.log("applying the set interval time out");
+    setTimerIntervalRef.current = setInterval(() => {
+      updateTimer();
+    }, 1000);
+
+    ipcRenderer.on("stop-recording", (event, args) => {
+      console.log("clearing the interval");
+      clearInterval(setTimerIntervalRef.current);
+      setTimerIntervalRef.current = null;
+      if (!isRecordingPaused?.current?.value) {
+        setRecordingTimer(0);
+        setMinutes(0);
+        setSeconds(0);
+      }
+    });
+
+    ipcRenderer.on("microphone-text", (event, dataObj) => {
+      let text = dataObj?.textData;
+      const message_type = dataObj?.message_type;
+
+      if (message_type === "FinalTranscript") {
+        finalStoredTranscriptMicrophone.current.finalTextData += text;
+        text = "";
+      }
+
+      console.log("newly coming user audio text:", { text, chatLogRef });
+      if (chatLogRef?.current?.chatLog?.length === 0) {
+        return;
+      }
+      if (text?.includes(SILENCE_DETECTED_MESSAGE)) {
+        return;
+      }
+      setChatLog((prev) => {
+        const finalText =
+          finalStoredTranscriptMicrophone.current.finalTextData + text;
+        prev.at(-1).userAudioTranscription = finalText;
+        return prev;
+      });
+    });
+    ipcRenderer.on("transcription", (event, dataObj) => {
+      console.log({ dataObj });
+      let text = dataObj?.textData;
+      const message_type = dataObj?.message_type;
+      if (text?.includes(SILENCE_DETECTED_MESSAGE)) {
+        text = text?.replaceAll(SILENCE_DETECTED_MESSAGE, "");
+        if (isUserOptForAutomatedProcess.current.isAutomated) {
+          handleSubmitRef.current.handleSubmitFunction();
+        }
+      }
+      text = text?.replace(
+        /\\u([0-9]|[a-fA-F])([0-9]|[a-fA-F])([0-9]|[a-fA-F])([0-9]|[a-fA-F])/g,
+        SILENCE_DETECTED_MESSAGE
+      );
+      if (bufferText !== text) bufferText = text;
+      if (!inputText.includes(text)) {
+        if (compareStrings(text, INACTIVITY_MESSAGE)) {
+          setIsSilenceModalOpen(true);
+          return;
+        }
+        if (message_type === "FinalTranscript") {
+          finalStoredTranscriptSpeaker.current.finalTextData += text;
+          bufferText = "";
+        }
+        setInputText(() => {
+          const finalText =
+            finalStoredTranscriptSpeaker.current.finalTextData + bufferText;
+          inputTextRef.current.inputText = finalText;
+          return finalText;
+        });
+      }
+    });
+  }
+
+----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- ----- X ---- 

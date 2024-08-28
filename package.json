@@ -1,0 +1,123 @@
+{
+  "name": "ai-interview-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "productName": "312-ai-interview-frontend",
+  "main": "public/electron.js",
+  "homepage": "./",
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.0.21",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@uiw/react-markdown-preview": "^5.1.1",
+    "axios": "^1.7.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5",
+    "electron-log": "^5.1.2",
+    "firebase": "^10.11.1",
+    "form-data": "^4.0.0",
+    "html-react-parser": "^5.1.12",
+    "macos-audio-devices": "^1.4.0",
+    "node-polyfill-webpack-plugin": "^3.0.0",
+    "node-record-lpcm16": "^1.0.1",
+    "pcm-convert": "^1.6.5",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.2",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.3",
+    "react-hook-form": "^7.51.5",
+    "react-loader-spinner": "^6.1.6",
+    "react-modern-drawer": "^1.3.1",
+    "react-router-dom": "^6.23.1",
+    "react-scripts": "5.0.1",
+    "react-textarea-autosize": "^8.5.3",
+    "react-toastify": "^10.0.5",
+    "socket.io-client": "^4.7.5",
+    "sudo-prompt": "^9.2.1",
+    "wav": "^1.0.2",
+    "web-vitals": "^2.1.4",
+    "ws": "^8.16.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
+    "package": "electron-builder build --mac --win -c.extraMetadata.main=build/electron.js --publish never",
+    "publish": "electron-builder build --mac --win --publish always",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.prashant.ai-interview-demo",
+    "productName": "312-ai-interview-frontend",
+    "protocols": {
+      "name": "interviewappdesktop",
+      "schemes": [
+        "interviewappdesktop"
+      ]
+    },
+    "icon": "src/Icons/MyIcon.icns",
+    "mac": {
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "./entitlements.plist",
+      "entitlementsInherit": "./entitlements.plist",
+      "category": "public.app-category.developer-tools",
+      "publish": {
+        "provider": "github",
+        "owner": "Github Owner",
+        "repo": "Repository Name",
+        "private": true,
+        "token": ""
+      }
+    },
+    "win": {
+      "publish": {
+        "provider": "github",
+        "owner": "Github Owner",
+        "repo": "Repository Name",
+        "private": true,
+        "token": ""
+      }
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "private": true,
+      "owner": "Github Owner"
+    }
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^30.0.8",
+    "electron-builder": "^24.13.3",
+    "tailwindcss": "^3.4.3"
+  },
+  "browser": {
+    "crypto": false
+  }
+}

@@ -1,0 +1,18 @@
+//Note: this might be needed later as client demands changes
+// <SessionChip
+//   title={session?.title}
+//   {...{ getThread, key }}
+//   sessionId={session?.session}
+//   onRename={() => setIsRenameModalOpen(true)}
+//   onArchive={() =>
+//     onMarkSessionArchive({
+//       sessionId: session?.session,
+//     })
+//   }
+//   onDelete={() => {
+//     setSelectedSessionForPerformingOperation(
+//       session
+//     );
+//     setIsDeleteChatModalOpen(true);
+//   }}
+// />
